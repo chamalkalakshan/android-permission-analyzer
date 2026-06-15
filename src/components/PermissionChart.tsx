@@ -5,23 +5,28 @@ import {
 } from 'recharts';
 import { getPermissionInfo, CATEGORY_COLORS, RISK_COLORS, type PermissionCategory } from '../data/permissions';
 
-interface Props {
-  permissions: string[];
-}
-
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: { color: string } }> }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[#0f172a] border border-white/10 rounded-xl px-3.5 py-2.5 text-sm shadow-2xl backdrop-blur-xl">
-      <p className="font-bold text-white mb-0.5">{payload[0].name}</p>
-      <p style={{ color: payload[0].payload.color }} className="font-semibold">
-        {payload[0].value} permission{payload[0].value !== 1 ? 's' : ''}
-      </p>
-    </div>
-  );
+const TOOLTIP_STYLE = {
+  backgroundColor: '#18181b',
+  border: '1px solid #3f3f46',
+  borderRadius: 10,
+  color: '#f4f4f5',
+  fontSize: 13,
+  padding: '8px 12px',
+  boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
 };
 
-export function PermissionChart({ permissions }: Props) {
+function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl p-5" style={{ background: '#18181b', border: '1px solid #27272a' }}>
+      <p className="text-white font-bold mb-0.5">{title}</p>
+      {subtitle && <p className="text-xs mb-4" style={{ color: '#52525b' }}>{subtitle}</p>}
+      {!subtitle && <div className="mb-4" />}
+      {children}
+    </div>
+  );
+}
+
+export function PermissionChart({ permissions }: { permissions: string[] }) {
   const infos = permissions.map(getPermissionInfo);
 
   const riskCounts: Record<string, number> = { dangerous: 0, normal: 0, signature: 0, unknown: 0 };
@@ -38,107 +43,66 @@ export function PermissionChart({ permissions }: Props) {
   infos.forEach(i => { catCounts[i.category] = (catCounts[i.category] || 0) + 1; });
   const catData = Object.entries(catCounts)
     .sort(([, a], [, b]) => b - a)
-    .map(([name, value]) => ({ name, value, color: CATEGORY_COLORS[name as PermissionCategory] }));
+    .map(([name, value]) => ({ name, value, fill: CATEGORY_COLORS[name as PermissionCategory] }));
 
-  const dangerousCats = infos.filter(i => i.risk === 'dangerous');
-  const radarCats = [...new Set(dangerousCats.map(i => i.category))].slice(0, 8);
-  const radarData = radarCats.map(cat => ({
-    category: cat,
-    count: dangerousCats.filter(i => i.category === cat).length,
-  }));
-
-  const cardCls = 'backdrop-blur-xl bg-white/[0.03] border border-white/8 rounded-2xl p-5';
+  const dangerByCategory: Partial<Record<PermissionCategory, number>> = {};
+  infos.filter(i => i.risk === 'dangerous').forEach(i => {
+    dangerByCategory[i.category] = (dangerByCategory[i.category] || 0) + 1;
+  });
+  const radarData = Object.entries(dangerByCategory).slice(0, 7).map(([cat, count]) => ({ category: cat, count }));
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-      {/* Risk Donut */}
-      <div className={cardCls}>
-        <p className="text-white font-bold text-sm mb-0.5">Risk Distribution</p>
-        <p className="text-slate-500 text-xs mb-4">Permissions by risk level</p>
-        <ResponsiveContainer width="100%" height={250}>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <ChartCard title="Risk Distribution" subtitle="Permissions by risk level">
+        <ResponsiveContainer width="100%" height={220}>
           <PieChart>
-            <Pie
-              data={riskData}
-              cx="50%" cy="46%"
-              innerRadius={65} outerRadius={95}
-              dataKey="value"
-              paddingAngle={4}
-              strokeWidth={0}
-            >
-              {riskData.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
+            <Pie data={riskData} cx="50%" cy="50%" innerRadius={60} outerRadius={85} dataKey="value" paddingAngle={3} strokeWidth={0}>
+              {riskData.map((e, i) => <Cell key={i} fill={e.color} />)}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number, n: string) => [v, n]} />
           </PieChart>
         </ResponsiveContainer>
-        <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-1">
+        <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
           {riskData.map(d => (
-            <div key={d.name} className="flex items-center gap-1.5 text-xs text-slate-300">
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
-              <span className="text-slate-500">{d.name}</span>
-              <span className="font-black text-white">{d.value}</span>
+            <div key={d.name} className="flex items-center gap-1.5 text-xs" style={{ color: '#a1a1aa' }}>
+              <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
+              <span>{d.name}</span>
+              <span className="font-bold text-white">{d.value}</span>
             </div>
           ))}
         </div>
-      </div>
+      </ChartCard>
 
-      {/* Category Bar */}
-      <div className={cardCls}>
-        <p className="text-white font-bold text-sm mb-0.5">By Category</p>
-        <p className="text-slate-500 text-xs mb-4">Permission count per category</p>
-        <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={catData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-            <XAxis
-              dataKey="name"
-              tick={{ fill: '#475569', fontSize: 9 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fill: '#475569', fontSize: 9 }}
-              axisLine={false}
-              tickLine={false}
-              allowDecimals={false}
-            />
-            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-              {catData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+      <ChartCard title="By Category" subtitle="Permission count per category">
+        <ResponsiveContainer width="100%" height={220}>
+          <BarChart data={catData} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
+            <XAxis dataKey="name" tick={{ fill: '#71717a', fontSize: 9 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#71717a', fontSize: 9 }} axisLine={false} tickLine={false} allowDecimals={false} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+            <Bar dataKey="value" radius={[5, 5, 0, 0]}>
+              {catData.map((e, i) => <Cell key={i} fill={e.fill} />)}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </ChartCard>
 
-      {/* Danger Radar */}
-      <div className={cardCls}>
-        <p className="text-white font-bold text-sm mb-0.5">Danger Profile</p>
-        <p className="text-slate-500 text-xs mb-4">Dangerous permissions by category</p>
+      <ChartCard title="Danger Profile" subtitle="Dangerous permissions per category">
         {radarData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={220}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="#ffffff08" />
-              <PolarAngleAxis dataKey="category" tick={{ fill: '#475569', fontSize: 9 }} />
-              <PolarRadiusAxis tick={{ fill: '#334155', fontSize: 8 }} axisLine={false} />
-              <Radar
-                name="Dangerous"
-                dataKey="count"
-                stroke="#f43f5e"
-                fill="#f43f5e"
-                fillOpacity={0.15}
-                strokeWidth={2}
-              />
+              <PolarGrid stroke="#27272a" />
+              <PolarAngleAxis dataKey="category" tick={{ fill: '#71717a', fontSize: 9 }} />
+              <PolarRadiusAxis tick={{ fill: '#3f3f46', fontSize: 8 }} axisLine={false} />
+              <Radar dataKey="count" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} strokeWidth={2} />
             </RadarChart>
           </ResponsiveContainer>
         ) : (
-          <div className="flex flex-col items-center justify-center h-[250px]">
-            <div className="w-12 h-12 rounded-2xl bg-green-500/10 flex items-center justify-center mb-3">
-              <span className="text-2xl">✓</span>
-            </div>
-            <p className="text-green-400 font-semibold text-sm">No dangerous permissions</p>
+          <div className="flex items-center justify-center h-[220px] text-sm" style={{ color: '#52525b' }}>
+            No dangerous permissions found
           </div>
         )}
-      </div>
+      </ChartCard>
     </div>
   );
 }

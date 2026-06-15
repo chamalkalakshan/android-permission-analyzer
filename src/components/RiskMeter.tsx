@@ -4,44 +4,34 @@ interface Props {
 }
 
 export function RiskMeter({ score, size = 'md' }: Props) {
-  const clamped = Math.min(Math.max(score, 0), 100);
+  const v = Math.min(Math.max(score, 0), 100);
 
-  const label =
-    clamped >= 70 ? 'High Risk' :
-    clamped >= 40 ? 'Moderate Risk' :
-    clamped >= 15 ? 'Low-Moderate' :
-    'Low Risk';
+  const { label, color, gradient } =
+    v >= 70 ? { label: 'High Risk',      color: '#ef4444', gradient: 'linear-gradient(90deg,#22c55e,#eab308,#f97316,#ef4444)' } :
+    v >= 40 ? { label: 'Moderate Risk',  color: '#f97316', gradient: 'linear-gradient(90deg,#22c55e,#eab308,#f97316)' } :
+    v >= 15 ? { label: 'Low-Moderate',   color: '#eab308', gradient: 'linear-gradient(90deg,#22c55e,#eab308)' } :
+              { label: 'Low Risk',       color: '#22c55e', gradient: 'linear-gradient(90deg,#22c55e,#4ade80)' };
 
-  const labelColor =
-    clamped >= 70 ? '#f43f5e' :
-    clamped >= 40 ? '#fb923c' :
-    clamped >= 15 ? '#facc15' :
-    '#4ade80';
-
-  const heights = { sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' };
-  const textSizes = { sm: 'text-xs', md: 'text-sm', lg: 'text-base' };
+  const h = size === 'lg' ? 14 : size === 'sm' ? 6 : 10;
+  const fs = size === 'lg' ? '0.9rem' : size === 'sm' ? '0.7rem' : '0.8rem';
 
   return (
-    <div className="w-full">
-      <div className={`relative w-full ${heights[size]} rounded-full overflow-hidden bg-white/5`}>
-        {/* Gradient track */}
-        <div
-          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
-          style={{
-            width: `${clamped}%`,
-            background: clamped >= 70
-              ? 'linear-gradient(90deg, #4ade80, #facc15, #fb923c, #f43f5e)'
-              : clamped >= 40
-              ? 'linear-gradient(90deg, #4ade80, #facc15, #fb923c)'
-              : clamped >= 15
-              ? 'linear-gradient(90deg, #4ade80, #facc15)'
-              : 'linear-gradient(90deg, #4ade80, #86efac)',
-          }}
-        />
+    <div style={{ width: '100%' }}>
+      <div style={{ position: 'relative', width: '100%', height: h, borderRadius: h, background: '#27272a', overflow: 'hidden' }}>
+        <div style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0,
+          width: `${v}%`,
+          borderRadius: h,
+          background: gradient,
+          transition: 'width 0.7s cubic-bezier(0.4,0,0.2,1)',
+        }} />
       </div>
-      <div className="flex justify-between items-center mt-2">
-        <span className={`${textSizes[size]} font-bold`} style={{ color: labelColor }}>{label}</span>
-        <span className={`${textSizes[size]} font-black text-slate-300`}>{clamped}<span className="text-slate-600 font-normal">/100</span></span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
+        <span style={{ fontSize: fs, fontWeight: 700, color }}>{label}</span>
+        <span style={{ fontSize: fs, color: '#a1a1aa' }}>
+          <span style={{ fontWeight: 800, color: '#f4f4f5' }}>{v}</span>
+          <span style={{ color: '#52525b' }}>/100</span>
+        </span>
       </div>
     </div>
   );
