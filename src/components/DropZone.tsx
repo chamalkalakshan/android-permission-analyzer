@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Shield, Upload, FileCode, Smartphone, Lock, Zap, FileText } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 interface Props {
   onFile: (file: File) => void;
@@ -42,9 +43,14 @@ export function DropZone({ onFile, onXml, loading }: Props) {
 
   return (
     <div
-      style={{ background: '#09090b' }}
+      style={{ background: 'var(--bg)', position: 'relative' }}
       className="min-h-screen flex flex-col items-center justify-center p-6"
     >
+      {/* Theme toggle */}
+      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+        <ThemeToggle />
+      </div>
+
       {/* Header */}
       <div className="text-center mb-10">
         <div
@@ -53,10 +59,10 @@ export function DropZone({ onFile, onXml, loading }: Props) {
         >
           <Shield className="w-7 h-7 text-white" />
         </div>
-        <h1 className="text-4xl font-black text-white tracking-tight mb-2">
+        <h1 className="text-4xl font-black tracking-tight mb-2" style={{ color: 'var(--t1)' }}>
           Android Permission Analyzer
         </h1>
-        <p style={{ color: '#71717a' }} className="text-base">
+        <p style={{ color: 'var(--t3)' }} className="text-base">
           Visual security analysis for Android APKs - runs entirely in your browser
         </p>
       </div>
@@ -64,12 +70,12 @@ export function DropZone({ onFile, onXml, loading }: Props) {
       {/* Main card */}
       <div
         className="w-full max-w-lg rounded-2xl p-6"
-        style={{ background: '#18181b', border: '1px solid #27272a' }}
+        style={{ background: 'var(--s1)', border: '1px solid var(--s2)' }}
       >
         {/* Tabs */}
         <div
           className="flex rounded-xl p-1 mb-5"
-          style={{ background: '#09090b' }}
+          style={{ background: 'var(--bg)' }}
         >
           {(['apk', 'xml'] as const).map(t => (
             <button
@@ -79,7 +85,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
               style={
                 tab === t
                   ? { background: '#6366f1', color: '#fff' }
-                  : { color: '#71717a' }
+                  : { color: 'var(--t3)' }
               }
             >
               {t === 'apk'
@@ -103,8 +109,8 @@ export function DropZone({ onFile, onXml, loading }: Props) {
               {...getRootProps()}
               className="rounded-xl p-10 text-center transition-all duration-200 cursor-pointer"
               style={{
-                border: `2px dashed ${isDragActive ? '#6366f1' : '#3f3f46'}`,
-                background: isDragActive ? 'rgba(99,102,241,0.08)' : '#09090b',
+                border: `2px dashed ${isDragActive ? '#6366f1' : 'var(--s3)'}`,
+                background: isDragActive ? 'rgba(99,102,241,0.08)' : 'var(--bg)',
               }}
               onClick={() => inputRef.current?.click()}
             >
@@ -113,23 +119,23 @@ export function DropZone({ onFile, onXml, loading }: Props) {
                 <div className="flex flex-col items-center gap-3 py-2">
                   <div
                     className="w-10 h-10 rounded-full border-[3px] border-t-indigo-500 animate-spin"
-                    style={{ borderColor: '#27272a', borderTopColor: '#6366f1' }}
+                    style={{ borderColor: 'var(--s2)', borderTopColor: '#6366f1' }}
                   />
-                  <p className="text-white font-semibold">Analyzing…</p>
-                  <p style={{ color: '#71717a' }} className="text-sm">Parsing manifest and detecting patterns</p>
+                  <p className="font-semibold" style={{ color: 'var(--t1)' }}>Analyzing...</p>
+                  <p style={{ color: 'var(--t3)' }} className="text-sm">Parsing manifest and detecting patterns</p>
                 </div>
               ) : (
                 <>
                   <div
                     className="w-14 h-14 rounded-xl mx-auto mb-4 flex items-center justify-center"
-                    style={{ background: isDragActive ? 'rgba(99,102,241,0.15)' : '#27272a' }}
+                    style={{ background: isDragActive ? 'rgba(99,102,241,0.15)' : 'var(--s2)' }}
                   >
-                    <Upload className="w-6 h-6" style={{ color: isDragActive ? '#818cf8' : '#71717a' }} />
+                    <Upload className="w-6 h-6" style={{ color: isDragActive ? '#818cf8' : 'var(--t3)' }} />
                   </div>
-                  <p className="text-white font-bold text-lg mb-1">
+                  <p className="font-bold text-lg mb-1" style={{ color: 'var(--t1)' }}>
                     {isDragActive ? 'Drop to analyze' : 'Drop your APK here'}
                   </p>
-                  <p style={{ color: '#71717a' }} className="text-sm mb-4">
+                  <p style={{ color: 'var(--t3)' }} className="text-sm mb-4">
                     or{' '}
                     <span
                       className="cursor-pointer font-medium underline underline-offset-2"
@@ -138,7 +144,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
                       click to browse
                     </span>
                   </p>
-                  <p style={{ color: '#3f3f46' }} className="text-xs">.apk and AndroidManifest.xml supported</p>
+                  <p style={{ color: 'var(--t5)' }} className="text-xs">.apk and AndroidManifest.xml supported</p>
                 </>
               )}
             </div>
@@ -148,16 +154,16 @@ export function DropZone({ onFile, onXml, loading }: Props) {
             <textarea
               className="w-full h-44 rounded-xl p-4 text-xs font-mono resize-none outline-none transition-colors"
               style={{
-                background: '#09090b',
-                border: '1px solid #3f3f46',
-                color: '#e4e4e7',
+                background: 'var(--bg)',
+                border: '1px solid var(--s3)',
+                color: 'var(--t1)',
                 caretColor: '#6366f1',
               }}
               placeholder={'<?xml version="1.0"?>\n<manifest package="com.example.app">\n  <uses-permission android:name="..." />\n</manifest>'}
               value={xmlText}
               onChange={e => setXmlText(e.target.value)}
               onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#3f3f46')}
+              onBlur={e => (e.currentTarget.style.borderColor = 'var(--s3)')}
             />
             <button
               onClick={() => { if (xmlText.trim()) onXml(xmlText); }}
@@ -169,7 +175,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
                 cursor: !xmlText.trim() || loading ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? 'Analyzing…' : 'Analyze XML'}
+              {loading ? 'Analyzing...' : 'Analyze XML'}
             </button>
           </div>
         )}
@@ -179,7 +185,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
             className="mt-4 flex items-center gap-2 rounded-xl p-3 text-sm"
             style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}
           >
-            <span>⚠</span> {error}
+            <span>&#9888;</span> {error}
           </div>
         )}
       </div>
@@ -194,7 +200,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
           <div
             key={f.text}
             className="flex items-center gap-2 rounded-full px-4 py-2 text-sm"
-            style={{ background: '#18181b', border: '1px solid #27272a', color: '#a1a1aa' }}
+            style={{ background: 'var(--s1)', border: '1px solid var(--s2)', color: 'var(--t2)' }}
           >
             {f.icon} {f.text}
           </div>

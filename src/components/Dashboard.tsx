@@ -11,19 +11,19 @@ import { PermissionChart } from './PermissionChart';
 import { SuspiciousPanel } from './SuspiciousPanel';
 import { PermissionTimeline } from './PermissionTimeline';
 import { RiskMeter } from './RiskMeter';
+import { ThemeToggle } from './ThemeToggle';
 import { generatePdfReport } from '../utils/pdfGenerator';
 
 type Tab = 'overview' | 'permissions' | 'suspicious' | 'timeline' | 'components';
 
-const CARD = { background: '#18181b', border: '1px solid #27272a' };
-;
+const CARD = { background: 'var(--s1)', border: '1px solid var(--s2)' };
 
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color: string }) {
   return (
     <div className="rounded-2xl p-5" style={CARD}>
-      <p className="text-xs font-medium mb-1" style={{ color: '#52525b' }}>{label}</p>
+      <p className="text-xs font-medium mb-1" style={{ color: 'var(--t4)' }}>{label}</p>
       <p className="text-3xl font-black" style={{ color }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: '#3f3f46' }}>{sub}</p>}
+      {sub && <p className="text-xs mt-1" style={{ color: 'var(--t5)' }}>{sub}</p>}
     </div>
   );
 }
@@ -31,8 +31,8 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
 function InfoPill({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl px-3 py-2.5" style={CARD}>
-      <p className="text-[10px] font-medium uppercase tracking-widest mb-0.5" style={{ color: '#52525b' }}>{label}</p>
-      <p className="text-sm font-semibold text-white truncate">{value}</p>
+      <p className="text-[10px] font-medium uppercase tracking-widest mb-0.5" style={{ color: 'var(--t4)' }}>{label}</p>
+      <p className="text-sm font-semibold truncate" style={{ color: 'var(--t1)' }}>{value}</p>
     </div>
   );
 }
@@ -76,11 +76,11 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
   ];
 
   return (
-    <div style={{ background: '#09090b', minHeight: '100vh' }}>
-      {/* ── Sticky Header ── */}
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      {/* Sticky Header */}
       <header
         className="sticky top-0 z-20"
-        style={{ background: 'rgba(9,9,11,0.9)', borderBottom: '1px solid #27272a', backdropFilter: 'blur(12px)' }}
+        style={{ background: 'rgba(9,9,11,0.85)', borderBottom: '1px solid var(--s2)', backdropFilter: 'blur(12px)' }}
       >
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
@@ -89,8 +89,8 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
               <Shield className="w-4 h-4 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-white font-bold text-sm leading-none truncate">{manifest.packageName}</p>
-              <p className="text-xs mt-0.5 truncate" style={{ color: '#52525b' }}>{fileName}</p>
+              <p className="font-bold text-sm leading-none truncate" style={{ color: 'var(--t1)' }}>{manifest.packageName}</p>
+              <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--t4)' }}>{fileName}</p>
             </div>
             <span
               className="hidden sm:inline text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg flex-shrink-0"
@@ -107,12 +107,13 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
             >
               <Download className="w-3.5 h-3.5" /> PDF
             </button>
+            <ThemeToggle />
             <button
               onClick={onReset}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-              style={{ background: '#27272a', color: '#a1a1aa', border: '1px solid #3f3f46' }}
-              onMouseEnter={e => (e.currentTarget.style.background = '#3f3f46')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#27272a')}
+              style={{ background: 'var(--s2)', color: 'var(--t2)', border: '1px solid var(--s3)' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--s3)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'var(--s2)')}
             >
               <RotateCcw className="w-3.5 h-3.5" /> New
             </button>
@@ -121,7 +122,7 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
-        {/* ── Stats ── */}
+        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <StatCard label="Total Permissions" value={manifest.permissions.length}
             sub={`${categories.length} categories`} color="#818cf8" />
@@ -135,13 +136,13 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
             sub={riskBadge.label.toLowerCase()} color={riskBadge.color} />
         </div>
 
-        {/* ── Risk meter ── */}
+        {/* Risk meter */}
         <div className="rounded-2xl p-5" style={CARD}>
-          <p className="text-sm font-semibold text-white mb-3">Risk Assessment</p>
+          <p className="text-sm font-semibold mb-3" style={{ color: 'var(--t1)' }}>Risk Assessment</p>
           <RiskMeter score={riskScore} size="md" />
         </div>
 
-        {/* ── App meta ── */}
+        {/* App meta */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <InfoPill label="Package" value={manifest.packageName} />
           <InfoPill label="Version" value={`${manifest.versionName} (${manifest.versionCode})`} />
@@ -149,8 +150,8 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
           <InfoPill label="Target SDK" value={manifest.targetSdkVersion} />
         </div>
 
-        {/* ── Tabs ── */}
-        <div className="flex gap-1 rounded-xl p-1" style={{ background: '#18181b', border: '1px solid #27272a' }}>
+        {/* Tabs */}
+        <div className="flex gap-1 rounded-xl p-1" style={{ background: 'var(--s1)', border: '1px solid var(--s2)' }}>
           {TABS.map(t => (
             <button
               key={t.id}
@@ -158,17 +159,17 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
               className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all duration-150"
               style={tab === t.id
                 ? { background: '#6366f1', color: '#fff' }
-                : { color: '#71717a' }
+                : { color: 'var(--t3)' }
               }
-              onMouseEnter={e => { if (tab !== t.id) e.currentTarget.style.color = '#a1a1aa'; }}
-              onMouseLeave={e => { if (tab !== t.id) e.currentTarget.style.color = '#71717a'; }}
+              onMouseEnter={e => { if (tab !== t.id) e.currentTarget.style.color = 'var(--t2)'; }}
+              onMouseLeave={e => { if (tab !== t.id) e.currentTarget.style.color = 'var(--t3)'; }}
             >
               {t.icon}
               <span className="hidden sm:inline">{t.label}</span>
               {t.badge !== undefined && t.badge > 0 && (
                 <span
                   className="rounded-full text-[10px] px-1.5 py-0.5 font-bold"
-                  style={tab === t.id ? { background: 'rgba(255,255,255,0.2)' } : { background: '#27272a', color: '#71717a' }}
+                  style={tab === t.id ? { background: 'rgba(255,255,255,0.2)' } : { background: 'var(--s2)', color: 'var(--t3)' }}
                 >
                   {t.badge}
                 </span>
@@ -177,7 +178,7 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
           ))}
         </div>
 
-        {/* ── Tab Content ── */}
+        {/* Tab Content */}
 
         {tab === 'overview' && <PermissionChart permissions={manifest.permissions} />}
 
@@ -186,23 +187,23 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
             {/* Search + filters */}
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: '#52525b' }} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--t4)' }} />
                 <input
                   type="text"
-                  placeholder="Search permissions…"
+                  placeholder="Search permissions..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none transition-colors"
-                  style={{ background: '#18181b', border: '1px solid #27272a', color: '#f4f4f5' }}
+                  style={{ background: 'var(--s1)', border: '1px solid var(--s2)', color: 'var(--t1)' }}
                   onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#27272a')}
+                  onBlur={e => (e.currentTarget.style.borderColor = 'var(--s2)')}
                 />
               </div>
               <select
                 value={riskFilter}
                 onChange={e => setRiskFilter(e.target.value as RiskLevel | 'all')}
                 className="rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: '#18181b', border: '1px solid #27272a', color: '#a1a1aa', minWidth: 130 }}
+                style={{ background: 'var(--s1)', border: '1px solid var(--s2)', color: 'var(--t2)', minWidth: 130 }}
               >
                 <option value="all">All risk levels</option>
                 <option value="dangerous">Dangerous</option>
@@ -214,7 +215,7 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
                 value={catFilter}
                 onChange={e => setCatFilter(e.target.value as PermissionCategory | 'all')}
                 className="rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ background: '#18181b', border: '1px solid #27272a', color: '#a1a1aa', minWidth: 140 }}
+                style={{ background: 'var(--s1)', border: '1px solid var(--s2)', color: 'var(--t2)', minWidth: 140 }}
               >
                 <option value="all">All categories</option>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -229,8 +230,8 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
                   onClick={() => setCatFilter(catFilter === cat ? 'all' : cat as PermissionCategory)}
                   className="flex items-center gap-1.5 text-xs rounded-full px-3 py-1.5 transition-all font-medium"
                   style={catFilter === cat
-                    ? { background: '#27272a', color: '#f4f4f5', border: '1px solid #52525b' }
-                    : { background: '#18181b', color: '#71717a', border: '1px solid #27272a' }
+                    ? { background: 'var(--s2)', color: 'var(--t1)', border: '1px solid var(--t4)' }
+                    : { background: 'var(--s1)', color: 'var(--t3)', border: '1px solid var(--s2)' }
                   }
                 >
                   <div className="w-2 h-2 rounded-full flex-shrink-0"
@@ -240,7 +241,7 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
               ))}
             </div>
 
-            <p className="text-xs" style={{ color: '#52525b' }}>
+            <p className="text-xs" style={{ color: 'var(--t4)' }}>
               {filtered.length} of {manifest.permissions.length} permissions
             </p>
 
@@ -248,8 +249,8 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
               {filtered.map(info => <PermissionCard key={info.name} info={info} />)}
               {filtered.length === 0 && (
                 <div className="rounded-2xl p-12 text-center" style={CARD}>
-                  <Search className="w-8 h-8 mx-auto mb-2" style={{ color: '#3f3f46' }} />
-                  <p style={{ color: '#52525b' }}>No permissions match your filters.</p>
+                  <Search className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--t5)' }} />
+                  <p style={{ color: 'var(--t4)' }}>No permissions match your filters.</p>
                 </div>
               )}
             </div>
@@ -271,23 +272,23 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
               <div key={s.label} className="rounded-2xl p-5" style={CARD}>
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="font-bold text-white">{s.label}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#52525b' }}>{s.desc}</p>
+                    <p className="font-bold" style={{ color: 'var(--t1)' }}>{s.label}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--t4)' }}>{s.desc}</p>
                   </div>
                   <span className="text-3xl font-black" style={{ color: s.color }}>{s.items.length}</span>
                 </div>
                 {s.items.length > 0 ? (
                   <div className="space-y-1.5 max-h-44 overflow-y-auto">
                     {s.items.map((item, i) => (
-                      <div key={i} className="rounded-lg px-3 py-2" style={{ background: '#09090b' }}>
-                        <span className="text-xs font-mono" style={{ color: '#a1a1aa' }}>
+                      <div key={i} className="rounded-lg px-3 py-2" style={{ background: 'var(--bg)' }}>
+                        <span className="text-xs font-mono" style={{ color: 'var(--t2)' }}>
                           {item.split('.').slice(-2).join('.')}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm" style={{ color: '#3f3f46' }}>None declared</p>
+                  <p className="text-sm" style={{ color: 'var(--t5)' }}>None declared</p>
                 )}
               </div>
             ))}
@@ -295,9 +296,9 @@ export function Dashboard({ manifest, fileName, onReset }: { manifest: ParsedMan
         )}
       </div>
 
-      <footer className="text-center py-8 mt-6" style={{ borderTop: '1px solid #18181b' }}>
-        <p className="text-xs" style={{ color: '#27272a' }}>
-          Android Permission Analyzer · all analysis runs locally in your browser
+      <footer className="text-center py-8 mt-6" style={{ borderTop: '1px solid var(--s1)' }}>
+        <p className="text-xs" style={{ color: 'var(--s2)' }}>
+          Android Permission Analyzer - all analysis runs locally in your browser
         </p>
       </footer>
     </div>
