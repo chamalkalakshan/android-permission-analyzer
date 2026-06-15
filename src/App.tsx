@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DropZone } from './components/DropZone';
 import { Dashboard } from './components/Dashboard';
 import { parseApk, parseXmlText, type ParsedManifest } from './utils/apkParser';
 
 function App() {
   const [manifest, setManifest] = useState<ParsedManifest | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+  }, []);
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
