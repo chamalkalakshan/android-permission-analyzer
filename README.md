@@ -1,5 +1,7 @@
 # Android Permission Analyzer
 
+**Live site: [android-permission-analyzer.vercel.app](https://android-permission-analyzer.vercel.app)**
+
 A browser-based tool to visually analyze Android APK permissions, detect suspicious patterns, and generate professional security reports - all without uploading your APK to any server.
 
 ## Features
