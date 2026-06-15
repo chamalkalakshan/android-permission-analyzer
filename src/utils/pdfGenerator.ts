@@ -75,7 +75,8 @@ export function generatePdfReport(
   const clamped = Math.min(riskScore, 100);
 
   const statsY = 125;
-  const boxW = 52;
+  const gap = 4;
+  const boxW = (contentW - gap * 3) / 4;
   const stats = [
     { label: 'Total Permissions', value: String(total), color: COLORS.accent },
     { label: 'Dangerous', value: String(dangerous), color: COLORS.danger },
@@ -83,7 +84,7 @@ export function generatePdfReport(
     { label: 'Risk Score', value: `${clamped}/100`, color: clamped > 50 ? COLORS.danger : COLORS.success },
   ];
   stats.forEach((s, i) => {
-    const x = margin + i * (boxW + 3);
+    const x = margin + i * (boxW + gap);
     doc.setFillColor(30, 41, 59);
     doc.setDrawColor(...s.color);
     doc.roundedRect(x, statsY, boxW, 28, 2, 2, 'FD');
