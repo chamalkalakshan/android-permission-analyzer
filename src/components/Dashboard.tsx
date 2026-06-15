@@ -11,6 +11,7 @@ import { PermissionChart } from './PermissionChart';
 import { SuspiciousPanel } from './SuspiciousPanel';
 import { PermissionTimeline } from './PermissionTimeline';
 import { RiskMeter } from './RiskMeter';
+import { SummaryCard } from './SummaryCard';
 import { generatePdfReport } from '../utils/pdfGenerator';
 
 type Tab = 'overview' | 'permissions' | 'suspicious' | 'timeline' | 'components';
@@ -48,7 +49,6 @@ export function Dashboard({ manifest, fileName, onReset }: Props) {
     100
   );
 
-  const riskColor = riskScore >= 60 ? 'text-red-400' : riskScore >= 30 ? 'text-orange-400' : 'text-green-400';
 
   const categories = [...new Set(allInfos.map(i => i.category))];
 
@@ -94,17 +94,10 @@ export function Dashboard({ manifest, fileName, onReset }: Props) {
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Total Permissions', value: manifest.permissions.length, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
-            { label: 'Dangerous', value: dangerous, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
-            { label: 'Suspicious Patterns', value: patterns.length, color: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/20' },
-            { label: 'Risk Score', value: `${riskScore}/100`, color: riskColor, bg: 'bg-slate-800 border-slate-700' },
-          ].map(s => (
-            <div key={s.label} className={`border rounded-xl p-4 ${s.bg}`}>
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-slate-400 text-xs mt-0.5">{s.label}</p>
-            </div>
-          ))}
+          <SummaryCard title="Total Permissions" value={manifest.permissions.length} subtitle={`across ${[...new Set(allInfos.map(i => i.category))].length} categories`} color="indigo" />
+          <SummaryCard title="Dangerous Permissions" value={dangerous} subtitle={`${Math.round((dangerous / (manifest.permissions.length || 1)) * 100)}% of total`} color="red" trend={dangerous > 5 ? 'up' : 'neutral'} trendText={dangerous > 5 ? 'High count' : 'Acceptable'} />
+          <SummaryCard title="Suspicious Patterns" value={patterns.length} subtitle={critical > 0 ? `${critical} critical` : 'No critical'} color={patterns.length > 0 ? 'orange' : 'green'} />
+          <SummaryCard title="Risk Score" value={`${riskScore}/100`} subtitle={riskScore >= 60 ? 'High Risk' : riskScore >= 30 ? 'Moderate' : 'Low Risk'} color={riskScore >= 60 ? 'red' : riskScore >= 30 ? 'orange' : 'green'} />
         </div>
 
         {/* Risk score bar */}
