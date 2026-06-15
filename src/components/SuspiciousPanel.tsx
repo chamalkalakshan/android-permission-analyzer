@@ -1,89 +1,74 @@
-import { ShieldAlert, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { ChevronDown, ShieldCheck } from 'lucide-react';
 import type { SuspiciousPattern } from '../data/suspiciousPatterns';
 
 const SEV = {
-  critical: {
-    bar: '#f43f5e',
-    bg: 'bg-rose-500/8',
-    border: 'border-rose-500/20',
-    glow: 'shadow-rose-500/15',
-    badge: 'bg-rose-500 text-white',
-    text: 'text-rose-400',
-    label: 'CRITICAL',
-  },
-  high: {
-    bar: '#fb923c',
-    bg: 'bg-orange-500/8',
-    border: 'border-orange-500/20',
-    glow: 'shadow-orange-500/10',
-    badge: 'bg-orange-500 text-white',
-    text: 'text-orange-400',
-    label: 'HIGH',
-  },
-  medium: {
-    bar: '#facc15',
-    bg: 'bg-yellow-500/8',
-    border: 'border-yellow-500/15',
-    glow: '',
-    badge: 'bg-yellow-400 text-black',
-    text: 'text-yellow-400',
-    label: 'MEDIUM',
-  },
+  critical: { bar: '#ef4444', color: '#f87171', bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.25)', label: 'CRITICAL' },
+  high:     { bar: '#f97316', color: '#fb923c', bg: 'rgba(249,115,22,0.08)', border: 'rgba(249,115,22,0.25)', label: 'HIGH' },
+  medium:   { bar: '#eab308', color: '#facc15', bg: 'rgba(234,179,8,0.08)',  border: 'rgba(234,179,8,0.2)',  label: 'MEDIUM' },
 };
 
-function PatternCard({ pattern }: { pattern: SuspiciousPattern }) {
-  const [expanded, setExpanded] = useState(false);
-  const s = SEV[pattern.severity];
+function PatternCard({ p }: { p: SuspiciousPattern }) {
+  const [open, setOpen] = useState(false);
+  const s = SEV[p.severity];
 
   return (
     <div
-      className={`relative border rounded-2xl overflow-hidden transition-all duration-200 cursor-pointer ${s.bg} ${s.border} ${pattern.severity === 'critical' ? `shadow-lg ${s.glow}` : ''} hover:border-opacity-50`}
-      onClick={() => setExpanded(v => !v)}
+      className="rounded-xl overflow-hidden cursor-pointer transition-colors duration-150"
+      style={{ background: s.bg, border: `1px solid ${s.border}` }}
+      onClick={() => setOpen(v => !v)}
     >
-      {/* Left severity bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl" style={{ backgroundColor: s.bar }} />
-
-      <div className="flex items-center gap-4 px-5 py-4 pl-6">
-        <div className="flex-shrink-0">
-          <span className={`text-[10px] font-black px-2.5 py-1 rounded-lg tracking-widest ${s.badge}`}>
+      <div className="flex items-center gap-0">
+        <div className="w-1 self-stretch flex-shrink-0 rounded-l-xl" style={{ background: s.bar }} />
+        <div className="flex items-center gap-3 px-4 py-3.5 flex-1 min-w-0">
+          <span
+            className="text-[10px] font-black tracking-widest px-2.5 py-1 rounded-lg flex-shrink-0"
+            style={{ background: s.bar, color: '#fff' }}
+          >
             {s.label}
           </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-semibold text-sm">{p.title}</p>
+            <p className="text-xs mt-0.5 truncate" style={{ color: s.color, opacity: 0.75 }}>{p.description}</p>
+          </div>
+          <ChevronDown
+            className="w-4 h-4 flex-shrink-0 transition-transform duration-200"
+            style={{ color: '#52525b', transform: open ? 'rotate(180deg)' : 'rotate(0)' }}
+          />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-white font-bold text-sm leading-snug">{pattern.title}</p>
-          <p className={`text-xs mt-0.5 line-clamp-1 ${s.text} opacity-80`}>{pattern.description}</p>
-        </div>
-        <ChevronDown
-          className={`w-4 h-4 text-slate-500 flex-shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-        />
       </div>
 
-      {expanded && (
+      {open && (
         <div
-          className="border-t border-white/5 px-6 pb-4 pt-3 space-y-3 bg-white/[0.02]"
+          className="px-5 pb-4 pt-3 space-y-3"
+          style={{ borderTop: `1px solid ${s.border}`, background: 'rgba(0,0,0,0.2)' }}
           onClick={e => e.stopPropagation()}
         >
-          <p className="text-sm text-slate-300 leading-relaxed">{pattern.description}</p>
-
+          <p className="text-sm leading-relaxed" style={{ color: '#a1a1aa' }}>{p.description}</p>
           <div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Triggered by</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#52525b' }}>
+              Triggered by
+            </p>
             <div className="flex flex-wrap gap-2">
-              {pattern.permissions.map(p => (
+              {p.permissions.map(perm => (
                 <span
-                  key={p}
-                  className="text-xs font-mono px-2.5 py-1 rounded-lg border"
-                  style={{ color: s.bar, borderColor: s.bar + '30', backgroundColor: s.bar + '10' }}
+                  key={perm}
+                  className="text-xs font-mono px-2.5 py-1 rounded-lg"
+                  style={{ color: s.color, background: `${s.bar}18`, border: `1px solid ${s.bar}35` }}
                 >
-                  {p.split('.').pop()}
+                  {perm.split('.').pop()}
                 </span>
               ))}
             </div>
           </div>
-
-          <div className="bg-indigo-500/8 border border-indigo-500/15 rounded-xl p-3.5">
-            <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1.5">Recommendation</p>
-            <p className="text-sm text-slate-200 leading-relaxed">{pattern.recommendation}</p>
+          <div
+            className="rounded-xl p-3.5"
+            style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)' }}
+          >
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#818cf8' }}>
+              Recommendation
+            </p>
+            <p className="text-sm leading-relaxed" style={{ color: '#c7d2fe' }}>{p.recommendation}</p>
           </div>
         </div>
       )}
@@ -91,54 +76,54 @@ function PatternCard({ pattern }: { pattern: SuspiciousPattern }) {
   );
 }
 
-interface Props {
-  patterns: SuspiciousPattern[];
-}
-
-export function SuspiciousPanel({ patterns }: Props) {
-  const counts = {
-    critical: patterns.filter(p => p.severity === 'critical').length,
-    high: patterns.filter(p => p.severity === 'high').length,
-    medium: patterns.filter(p => p.severity === 'medium').length,
-  };
-
+export function SuspiciousPanel({ patterns }: { patterns: SuspiciousPattern[] }) {
   if (patterns.length === 0) {
     return (
-      <div className="bg-green-500/8 border border-green-500/20 rounded-3xl p-10 text-center">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-green-500/15 flex items-center justify-center">
-          <ShieldAlert className="w-8 h-8 text-green-400" />
+      <div
+        className="rounded-2xl p-12 text-center"
+        style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)' }}
+      >
+        <div
+          className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center"
+          style={{ background: 'rgba(34,197,94,0.12)' }}
+        >
+          <ShieldCheck className="w-7 h-7" style={{ color: '#4ade80' }} />
         </div>
-        <p className="text-green-400 font-bold text-lg">No Suspicious Patterns Detected</p>
-        <p className="text-slate-500 text-sm mt-1">Permission combinations look reasonable for this app.</p>
+        <p className="font-bold text-lg" style={{ color: '#4ade80' }}>No Suspicious Patterns Detected</p>
+        <p className="text-sm mt-1" style={{ color: '#52525b' }}>Permission combinations look reasonable.</p>
       </div>
     );
   }
 
+  const counts = { critical: 0, high: 0, medium: 0 };
+  patterns.forEach(p => counts[p.severity]++);
+
   return (
-    <div className="space-y-4">
-      {/* Summary pills */}
-      <div className="flex flex-wrap gap-2 pb-2">
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2 mb-1">
         {counts.critical > 0 && (
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-full px-3 py-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+          <span className="flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5"
+            style={{ color: '#f87171', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
             {counts.critical} Critical
           </span>
         )}
         {counts.high > 0 && (
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
+          <span className="flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5"
+            style={{ color: '#fb923c', background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
             {counts.high} High
           </span>
         )}
         {counts.medium > 0 && (
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-full px-3 py-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
+          <span className="flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1.5"
+            style={{ color: '#facc15', background: 'rgba(234,179,8,0.1)', border: '1px solid rgba(234,179,8,0.2)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" />
             {counts.medium} Medium
           </span>
         )}
       </div>
-
-      {patterns.map(p => <PatternCard key={p.id} pattern={p} />)}
+      {patterns.map(p => <PatternCard key={p.id} p={p} />)}
     </div>
   );
 }

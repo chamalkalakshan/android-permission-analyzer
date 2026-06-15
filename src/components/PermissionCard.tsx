@@ -3,83 +3,79 @@ import { ChevronDown } from 'lucide-react';
 import type { PermissionInfo, RiskLevel } from '../data/permissions';
 import { RISK_LABELS } from '../data/permissions';
 
-const RISK_CONFIG: Record<RiskLevel, { bar: string; badge: string; badgeText: string; glow: string }> = {
-  dangerous: {
-    bar: '#f43f5e',
-    badge: 'bg-rose-500/15 text-rose-400 border-rose-500/25',
-    badgeText: 'text-rose-400',
-    glow: 'hover:shadow-rose-500/10',
-  },
-  signature: {
-    bar: '#fb923c',
-    badge: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
-    badgeText: 'text-orange-400',
-    glow: 'hover:shadow-orange-500/10',
-  },
-  normal: {
-    bar: '#4ade80',
-    badge: 'bg-green-500/15 text-green-400 border-green-500/25',
-    badgeText: 'text-green-400',
-    glow: 'hover:shadow-green-500/10',
-  },
-  unknown: {
-    bar: '#475569',
-    badge: 'bg-slate-700/50 text-slate-400 border-slate-600/50',
-    badgeText: 'text-slate-400',
-    glow: '',
-  },
+const RISK: Record<RiskLevel, { bar: string; badge: string; badgeBg: string }> = {
+  dangerous: { bar: '#ef4444', badge: '#fca5a5', badgeBg: 'rgba(239,68,68,0.12)' },
+  signature: { bar: '#f97316', badge: '#fdba74', badgeBg: 'rgba(249,115,22,0.12)' },
+  normal:    { bar: '#22c55e', badge: '#86efac', badgeBg: 'rgba(34,197,94,0.12)'  },
+  unknown:   { bar: '#52525b', badge: '#a1a1aa', badgeBg: 'rgba(82,82,91,0.2)'   },
 };
 
-interface Props {
-  info: PermissionInfo;
-}
-
-export function PermissionCard({ info }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const cfg = RISK_CONFIG[info.risk];
+export function PermissionCard({ info }: { info: PermissionInfo }) {
+  const [open, setOpen] = useState(false);
+  const r = RISK[info.risk];
 
   return (
     <div
-      className={`group relative bg-white/[0.03] backdrop-blur-sm border border-white/8 rounded-2xl overflow-hidden cursor-pointer transition-all duration-200 hover:bg-white/[0.05] hover:border-white/15 hover:shadow-lg ${cfg.glow}`}
-      onClick={() => setExpanded(v => !v)}
+      className="rounded-xl overflow-hidden cursor-pointer transition-colors duration-150"
+      style={{ background: '#18181b', border: '1px solid #27272a' }}
+      onClick={() => setOpen(v => !v)}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = '#3f3f46')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = '#27272a')}
     >
-      {/* Left risk bar */}
-      <div className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-2xl transition-all duration-200" style={{ backgroundColor: cfg.bar }} />
+      <div className="flex items-center gap-0 pl-0">
+        {/* Left risk bar */}
+        <div className="w-1 self-stretch flex-shrink-0 rounded-l-xl" style={{ background: r.bar }} />
 
-      <div className="flex items-center gap-3 px-5 py-3.5 pl-6">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-0.5">
-            <span className="text-white font-bold text-sm tracking-tight truncate">{info.shortName}</span>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold flex-shrink-0 ${cfg.badge}`}>
-              {RISK_LABELS[info.risk]}
-            </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/8 text-slate-400 flex-shrink-0">
-              {info.category}
-            </span>
+        <div className="flex items-center gap-3 px-4 py-3 flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-white font-semibold text-sm truncate">{info.shortName}</span>
+              <span
+                className="text-[11px] px-2 py-0.5 rounded-full font-medium flex-shrink-0"
+                style={{ color: r.badge, background: r.badgeBg }}
+              >
+                {RISK_LABELS[info.risk]}
+              </span>
+              <span
+                className="text-[11px] px-2 py-0.5 rounded-full flex-shrink-0"
+                style={{ color: '#71717a', background: '#27272a' }}
+              >
+                {info.category}
+              </span>
+            </div>
+            <p className="text-xs mt-0.5 truncate" style={{ color: '#52525b' }}>{info.description}</p>
           </div>
-          <p className="text-slate-500 text-xs leading-snug truncate">{info.description}</p>
+          <ChevronDown
+            className="w-4 h-4 flex-shrink-0 transition-transform duration-200"
+            style={{ color: '#3f3f46', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          />
         </div>
-        <ChevronDown
-          className={`w-4 h-4 text-slate-500 flex-shrink-0 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-        />
       </div>
 
-      {expanded && (
+      {open && (
         <div
-          className="border-t border-white/5 px-6 pb-4 pt-3 space-y-3 bg-white/[0.02]"
+          className="px-5 pb-4 pt-3 space-y-3"
+          style={{ borderTop: '1px solid #27272a', background: '#09090b' }}
           onClick={e => e.stopPropagation()}
         >
           <div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">What it can access</p>
-            <p className="text-sm text-slate-300 leading-relaxed">{info.dataAccess}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#52525b' }}>
+              What it can access
+            </p>
+            <p className="text-sm leading-relaxed" style={{ color: '#a1a1aa' }}>{info.dataAccess}</p>
           </div>
           {info.realWorldAbuse && (
-            <div className="bg-rose-500/8 border border-rose-500/15 rounded-xl p-3">
-              <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1.5">Real-world abuse</p>
-              <p className="text-sm text-rose-200/80 leading-relaxed">{info.realWorldAbuse}</p>
+            <div
+              className="rounded-xl p-3"
+              style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)' }}
+            >
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#f87171' }}>
+                Real-world abuse
+              </p>
+              <p className="text-sm leading-relaxed" style={{ color: '#fca5a5' }}>{info.realWorldAbuse}</p>
             </div>
           )}
-          <p className="text-[10px] text-slate-600 font-mono pt-1">{info.name}</p>
+          <p className="text-[10px] font-mono" style={{ color: '#3f3f46' }}>{info.name}</p>
         </div>
       )}
     </div>
