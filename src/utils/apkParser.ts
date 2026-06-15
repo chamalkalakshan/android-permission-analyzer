@@ -169,7 +169,7 @@ function parseBinaryManifest(buffer: ArrayBuffer): ParsedManifest {
 
           let strValue = '';
           if (dataType === 0x03) {
-            // TYPE_STRING — value is a string pool index
+            // TYPE_STRING: value is a string pool index
             strValue = getString(strings, rawValIdx);
           } else if (dataType === 0x10 || dataType === 0x11 || dataType === 0x12) {
             // TYPE_INT_DEC / TYPE_INT_HEX / TYPE_INT_BOOLEAN

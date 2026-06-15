@@ -79,7 +79,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     category: 'Contacts',
     description: 'Read contacts list',
     dataAccess: 'Names, phone numbers, email addresses, and profile photos of all contacts',
-    realWorldAbuse: 'Social engineering — spammers harvest contact lists to send targeted phishing SMS.',
+    realWorldAbuse: 'Social engineering - spammers harvest contact lists to send targeted phishing SMS.',
   },
   'android.permission.WRITE_CONTACTS': {
     name: 'android.permission.WRITE_CONTACTS',
@@ -133,7 +133,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     category: 'Phone',
     description: 'Make phone calls without user interaction',
     dataAccess: 'Can initiate calls to any number silently',
-    realWorldAbuse: 'Premium rate number fraud — apps silently call expensive numbers.',
+    realWorldAbuse: 'Premium rate number fraud - apps silently call expensive numbers.',
   },
   'android.permission.READ_PHONE_STATE': {
     name: 'android.permission.READ_PHONE_STATE',
@@ -160,7 +160,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     category: 'SMS',
     description: 'Send SMS messages',
     dataAccess: 'Can send SMS/MMS to any number without user knowledge',
-    realWorldAbuse: 'SMS fraud — apps send texts to premium numbers or spread malware via spam.',
+    realWorldAbuse: 'SMS fraud - apps send texts to premium numbers or spread malware via spam.',
   },
   'android.permission.READ_SMS': {
     name: 'android.permission.READ_SMS',
@@ -230,7 +230,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     risk: 'normal',
     category: 'Network',
     description: 'Access Wi-Fi network information',
-    dataAccess: 'Wi-Fi SSID, BSSID, and connection state — can be used for indoor positioning',
+    dataAccess: 'Wi-Fi SSID, BSSID, and connection state - can be used for indoor positioning',
   },
   'android.permission.CHANGE_WIFI_STATE': {
     name: 'android.permission.CHANGE_WIFI_STATE',
@@ -316,7 +316,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     risk: 'signature',
     category: 'System',
     description: 'Install other APK packages',
-    dataAccess: 'Can prompt users to install additional apps — potentially malicious ones',
+    dataAccess: 'Can prompt users to install additional apps - potentially malicious ones',
     realWorldAbuse: 'Dropper malware installs secondary malicious payloads.',
   },
   'android.permission.SYSTEM_ALERT_WINDOW': {
@@ -326,7 +326,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     category: 'System',
     description: 'Draw overlays on top of other apps',
     dataAccess: 'Can overlay any screen including banking and password entry screens',
-    realWorldAbuse: 'Clickjacking attacks — fake UI overlaid on real banking apps to steal credentials.',
+    realWorldAbuse: 'Clickjacking attacks - fake UI overlaid on real banking apps to steal credentials.',
   },
   'android.permission.WRITE_SETTINGS': {
     name: 'android.permission.WRITE_SETTINGS',
@@ -393,7 +393,7 @@ export const PERMISSION_DB: Record<string, PermissionInfo> = {
     category: 'Storage',
     description: 'Unrestricted access to all files (Android 11+)',
     dataAccess: 'Complete access to all files on the device including other apps\' private data',
-    realWorldAbuse: 'Most powerful file access permission — functionally equivalent to root file access.',
+    realWorldAbuse: 'Most powerful file access permission - functionally equivalent to root file access.',
   },
 };
 

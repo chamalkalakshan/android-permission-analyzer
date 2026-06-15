@@ -57,7 +57,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
           Android Permission Analyzer
         </h1>
         <p style={{ color: '#71717a' }} className="text-base">
-          Visual security analysis for Android APKs — runs entirely in your browser
+          Visual security analysis for Android APKs - runs entirely in your browser
         </p>
       </div>
 
@@ -187,7 +187,7 @@ export function DropZone({ onFile, onXml, loading }: Props) {
       {/* Feature pills */}
       <div className="flex flex-wrap gap-3 mt-8 justify-center">
         {[
-          { icon: <Lock className="w-3.5 h-3.5" />, text: '100% local — no uploads' },
+          { icon: <Lock className="w-3.5 h-3.5" />, text: '100% local - no uploads' },
           { icon: <Zap className="w-3.5 h-3.5" />, text: 'Instant analysis' },
           { icon: <FileText className="w-3.5 h-3.5" />, text: 'PDF report export' },
         ].map(f => (
