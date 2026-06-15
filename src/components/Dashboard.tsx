@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import {
-  ShieldAlert, FileText, BarChart2, List,
+  ShieldAlert, BarChart2, List,
   Download, RotateCcw, Package, Search, Filter,
 } from 'lucide-react';
 import type { ParsedManifest } from '../utils/apkParser';
-import { getPermissionInfo, RISK_COLORS, type RiskLevel, type PermissionCategory, CATEGORY_COLORS } from '../data/permissions';
+import { getPermissionInfo, type RiskLevel, type PermissionCategory, CATEGORY_COLORS } from '../data/permissions';
 import { detectSuspiciousPatterns } from '../data/suspiciousPatterns';
 import { PermissionCard } from './PermissionCard';
 import { PermissionChart } from './PermissionChart';
