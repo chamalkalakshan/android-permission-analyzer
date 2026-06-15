@@ -25,20 +25,20 @@ export function PermissionTimeline({ permissions }: { permissions: string[] }) {
           <div key={category} className="relative pl-6">
             {/* Vertical connector */}
             {!isLast && (
-              <div className="absolute left-[7px] top-5 bottom-0 w-px" style={{ background: '#27272a' }} />
+              <div className="absolute left-[7px] top-5 bottom-0 w-px" style={{ background: 'var(--s2)' }} />
             )}
             {/* Dot */}
             <div
               className="absolute left-0 top-3 w-4 h-4 rounded-full border-2 flex items-center justify-center"
-              style={{ borderColor: color, background: '#09090b' }}
+              style={{ borderColor: color, background: 'var(--bg)' }}
             >
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
             </div>
 
-            <div className="rounded-xl p-4 mb-1" style={{ background: '#18181b', border: '1px solid #27272a' }}>
+            <div className="rounded-xl p-4 mb-1" style={{ background: 'var(--s1)', border: '1px solid var(--s2)' }}>
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-white text-sm">{category}</span>
+                  <span className="font-bold text-sm" style={{ color: 'var(--t1)' }}>{category}</span>
                   <span
                     className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                     style={{ color, background: `${color}18` }}

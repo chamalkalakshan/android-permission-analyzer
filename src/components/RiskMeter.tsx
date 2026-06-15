@@ -17,7 +17,7 @@ export function RiskMeter({ score, size = 'md' }: Props) {
 
   return (
     <div style={{ width: '100%' }}>
-      <div style={{ position: 'relative', width: '100%', height: h, borderRadius: h, background: '#27272a', overflow: 'hidden' }}>
+      <div style={{ position: 'relative', width: '100%', height: h, borderRadius: h, background: 'var(--s2)', overflow: 'hidden' }}>
         <div style={{
           position: 'absolute', left: 0, top: 0, bottom: 0,
           width: `${v}%`,
@@ -28,9 +28,9 @@ export function RiskMeter({ score, size = 'md' }: Props) {
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
         <span style={{ fontSize: fs, fontWeight: 700, color }}>{label}</span>
-        <span style={{ fontSize: fs, color: '#a1a1aa' }}>
-          <span style={{ fontWeight: 800, color: '#f4f4f5' }}>{v}</span>
-          <span style={{ color: '#52525b' }}>/100</span>
+        <span style={{ fontSize: fs, color: 'var(--t2)' }}>
+          <span style={{ fontWeight: 800, color: 'var(--t1)' }}>{v}</span>
+          <span style={{ color: 'var(--t4)' }}>/100</span>
         </span>
       </div>
     </div>
