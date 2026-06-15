@@ -1,73 +1,61 @@
-# React + TypeScript + Vite
+# Android Permission Analyzer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A browser-based tool to visually analyze Android APK permissions, detect suspicious patterns, and generate professional security reports — all without uploading your APK to any server.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Drag & Drop APK** — drop any `.apk` file or paste an `AndroidManifest.xml` directly
+- **Permission Database** — 40+ permissions explained with risk level, category, data access details, and real-world abuse cases
+- **Visual Charts** — risk distribution donut, category bar chart, and danger radar chart
+- **Risk Meter** — segmented risk score based on permission combination analysis
+- **Suspicious Pattern Detection** — 13 patterns covering surveillance, OTP interception, malware droppers, credential harvesting, and more
+- **Permission Timeline** — category-grouped timeline view of all permissions
+- **Component Explorer** — activities, services, broadcast receivers, and content providers
+- **PDF Report** — export a full security report with all findings
+- **100% client-side** — your APK never leaves your browser
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 19 + TypeScript
+- Vite 8
+- Tailwind CSS
+- Recharts (charts)
+- JSZip (APK parsing)
+- fast-xml-parser (manifest parsing)
+- jsPDF (report generation)
+- react-dropzone
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run build
 ```
+
+## Deployment
+
+Deploy the `dist/` folder to any static host:
+- [Vercel](https://vercel.com) — connect your GitHub repo for automatic deploys
+- [Netlify](https://netlify.com)
+- [Cloudflare Pages](https://pages.cloudflare.com)
+
+## How It Works
+
+Android APKs are ZIP files containing a binary-encoded `AndroidManifest.xml`. This tool:
+1. Unzips the APK using JSZip in the browser
+2. Parses the binary AXML format to extract permissions and component names
+3. Looks up each permission in the built-in database
+4. Runs pattern matching against known suspicious permission combinations
+5. Renders everything as interactive charts and cards
+
+## Privacy
+
+All analysis runs entirely in your browser. No files, permission data, or APK content are ever sent to a server.
