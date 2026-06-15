@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
   ShieldAlert, BarChart2, List,
-  Download, RotateCcw, Package, Search, Filter,
+  Download, RotateCcw, Package, Search, Filter, GitBranch,
 } from 'lucide-react';
 import type { ParsedManifest } from '../utils/apkParser';
 import { getPermissionInfo, type RiskLevel, type PermissionCategory, CATEGORY_COLORS } from '../data/permissions';
@@ -9,9 +9,11 @@ import { detectSuspiciousPatterns } from '../data/suspiciousPatterns';
 import { PermissionCard } from './PermissionCard';
 import { PermissionChart } from './PermissionChart';
 import { SuspiciousPanel } from './SuspiciousPanel';
+import { PermissionTimeline } from './PermissionTimeline';
+import { RiskMeter } from './RiskMeter';
 import { generatePdfReport } from '../utils/pdfGenerator';
 
-type Tab = 'overview' | 'permissions' | 'suspicious' | 'components';
+type Tab = 'overview' | 'permissions' | 'suspicious' | 'timeline' | 'components';
 
 interface Props {
   manifest: ParsedManifest;
@@ -46,9 +48,7 @@ export function Dashboard({ manifest, fileName, onReset }: Props) {
     100
   );
 
-  const riskLabel = riskScore >= 60 ? 'High Risk' : riskScore >= 30 ? 'Moderate Risk' : 'Low Risk';
   const riskColor = riskScore >= 60 ? 'text-red-400' : riskScore >= 30 ? 'text-orange-400' : 'text-green-400';
-  const riskBarColor = riskScore >= 60 ? 'bg-red-500' : riskScore >= 30 ? 'bg-orange-500' : 'bg-green-500';
 
   const categories = [...new Set(allInfos.map(i => i.category))];
 
@@ -56,6 +56,7 @@ export function Dashboard({ manifest, fileName, onReset }: Props) {
     { id: 'overview', label: 'Overview', icon: <BarChart2 className="w-4 h-4" /> },
     { id: 'permissions', label: 'Permissions', icon: <List className="w-4 h-4" />, badge: manifest.permissions.length },
     { id: 'suspicious', label: 'Suspicious', icon: <ShieldAlert className="w-4 h-4" />, badge: patterns.length },
+    { id: 'timeline', label: 'Timeline', icon: <GitBranch className="w-4 h-4" /> },
     { id: 'components', label: 'Components', icon: <Package className="w-4 h-4" /> },
   ];
 
@@ -108,16 +109,8 @@ export function Dashboard({ manifest, fileName, onReset }: Props) {
 
         {/* Risk score bar */}
         <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-slate-300 text-sm font-medium">Overall Risk Assessment</span>
-            <span className={`text-sm font-bold ${riskColor}`}>{riskLabel}</span>
-          </div>
-          <div className="w-full bg-slate-700 rounded-full h-2.5">
-            <div className={`h-2.5 rounded-full transition-all duration-700 ${riskBarColor}`} style={{ width: `${riskScore}%` }} />
-          </div>
-          <div className="flex justify-between text-xs text-slate-500 mt-1">
-            <span>Low</span><span>Moderate</span><span>High</span>
-          </div>
+          <p className="text-slate-300 text-sm font-medium mb-3">Overall Risk Assessment</p>
+          <RiskMeter score={riskScore} size="md" />
         </div>
 
         {/* App info strip */}
@@ -229,6 +222,10 @@ export function Dashboard({ manifest, fileName, onReset }: Props) {
 
         {tab === 'suspicious' && (
           <SuspiciousPanel patterns={patterns} />
+        )}
+
+        {tab === 'timeline' && (
+          <PermissionTimeline permissions={manifest.permissions} />
         )}
 
         {tab === 'components' && (
