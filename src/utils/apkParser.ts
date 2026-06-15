@@ -15,7 +15,8 @@ export interface ParsedManifest {
   providers: string[];
 }
 
-const BINARY_XML_MAGIC = 0x00080003;
+// Binary AXML magic: file type 0x0003, header size 0x0008
+const AXML_MAGIC = 0x00080003;
 
 export async function parseApk(file: File): Promise<ParsedManifest> {
   const buffer = await file.arrayBuffer();
@@ -26,8 +27,7 @@ export async function parseApk(file: File): Promise<ParsedManifest> {
   const manifestData = await manifestFile.async('arraybuffer');
   const view = new DataView(manifestData);
 
-  // Check if binary XML (APK) or plain XML
-  if (view.byteLength >= 4 && view.getUint32(0, true) === BINARY_XML_MAGIC) {
+  if (view.byteLength >= 4 && view.getUint32(0, true) === AXML_MAGIC) {
     return parseBinaryManifest(manifestData);
   }
 
@@ -57,11 +57,11 @@ function parseXmlManifest(xml: string): ParsedManifest {
   });
 
   const app = manifest?.application || {};
-
   const extractNames = (items: unknown): string[] => {
     if (!items) return [];
-    const arr = Array.isArray(items) ? items : [items];
-    return arr.map((i: Record<string, string>) => i?.['@_android:name'] || i?.['@_name'] || '').filter(Boolean);
+    return (Array.isArray(items) ? items : [items])
+      .map((i: Record<string, string>) => i?.['@_android:name'] || i?.['@_name'] || '')
+      .filter(Boolean);
   };
 
   return {
@@ -79,7 +79,24 @@ function parseXmlManifest(xml: string): ParsedManifest {
   };
 }
 
-// Binary AndroidManifest.xml parser (AXML format)
+/**
+ * Parses Android binary XML (AXML) format from APK's AndroidManifest.xml.
+ *
+ * AXML chunk layout:
+ *   File header:       type(2) + headerSize(2) + fileSize(4)   = 8 bytes
+ *   String pool:       ResChunk_header(8) + ResStringPool_header(20) + offsets + data
+ *   Resource map:      optional, type 0x0180
+ *   XML events:        namespace start/end (0x0100/0x0101), element start/end (0x0102/0x0103)
+ *
+ * Start-element chunk (type 0x0102):
+ *   ResChunk_header(8) + lineNumber(4) + comment(4)   = 16 bytes  (ResXMLTree_node)
+ *   ns(4) + name(4) + attrStart(2) + attrSize(2) + attrCount(2) + idIdx(2) + classIdx(2) + styleIdx(2)  (ResXMLTree_attrExt)
+ *   → ns at offset+16, name at offset+20, attrCount at offset+28, attrs at offset+36
+ *
+ * Each attribute (ResXMLTree_attribute, 20 bytes):
+ *   ns(4) + name(4) + rawValue(4) + typedValue{ size(2)+res0(1)+dataType(1)+data(4) }
+ *   → dataType at attrBase+15, data at attrBase+16
+ */
 function parseBinaryManifest(buffer: ArrayBuffer): ParsedManifest {
   const permissions: string[] = [];
   const activities: string[] = [];
@@ -94,107 +111,106 @@ function parseBinaryManifest(buffer: ArrayBuffer): ParsedManifest {
 
   try {
     const view = new DataView(buffer);
-    let offset = 8; // skip file header
 
-    // String pool chunk
-    const stringPoolType = view.getUint16(offset, true);
-    if (stringPoolType !== 0x0001) throw new Error('Expected string pool');
-    const stringPoolSize = view.getUint32(offset + 4, true);
-    const stringCount = view.getUint32(offset + 8, true);
-    const stringsStart = view.getUint32(offset + 20, true);
-    const offsets: number[] = [];
+    // ── String pool chunk (starts at offset 8, right after file header) ────
+    const poolStart = 8;
+    if (view.getUint16(poolStart, true) !== 0x0001) {
+      throw new Error('No string pool at expected offset');
+    }
+    const poolSize     = view.getUint32(poolStart + 4, true);
+    const stringCount  = view.getUint32(poolStart + 8, true);
+    const flags        = view.getUint32(poolStart + 16, true);
+    const stringsStart = view.getUint32(poolStart + 20, true);
+    const isUtf8       = (flags & 0x100) !== 0;
+
+    // String offset array at poolStart + 28 (after 28-byte header)
+    const strDataBase = poolStart + stringsStart;
+    const strings: string[] = [];
+
     for (let i = 0; i < stringCount; i++) {
-      offsets.push(view.getUint32(offset + 28 + i * 4, true));
-    }
-    const strBase = offset + stringsStart;
-    const strings: string[] = offsets.map(o => {
-      const strOffset = strBase + o;
-      if (strOffset + 2 > buffer.byteLength) return '';
-      const len = view.getUint16(strOffset, true);
-      let s = '';
-      for (let c = 0; c < len && strOffset + 2 + c * 2 + 1 < buffer.byteLength; c++) {
-        const ch = view.getUint16(strOffset + 2 + c * 2, true);
-        if (ch === 0) break;
-        s += String.fromCharCode(ch);
-      }
-      return s;
-    });
-
-    offset += stringPoolSize;
-
-    // Resource map chunk (optional)
-    if (offset + 2 <= buffer.byteLength) {
-      const chunkType = view.getUint16(offset, true);
-      if (chunkType === 0x0180) {
-        const chunkSize = view.getUint32(offset + 4, true);
-        offset += chunkSize;
-      }
+      const off = view.getUint32(poolStart + 28 + i * 4, true);
+      strings.push(readPoolString(view, buffer, strDataBase + off, isUtf8));
     }
 
+    let offset = poolStart + poolSize;
+
+    // ── Skip optional resource map (type 0x0180) ───────────────────────────
+    if (offset + 8 <= buffer.byteLength && view.getUint16(offset, true) === 0x0180) {
+      offset += view.getUint32(offset + 4, true);
+    }
+
+    // ── Walk XML event chunks ──────────────────────────────────────────────
     let currentElement = '';
 
     while (offset + 8 <= buffer.byteLength) {
       const chunkType = view.getUint16(offset, true);
       const chunkSize = view.getUint32(offset + 4, true);
-      if (chunkSize === 0) break;
+      if (chunkSize < 8) break;
 
       if (chunkType === 0x0102) {
         // Start element
-        const attrCount = view.getUint16(offset + 20, true);
-        const nameIdx = view.getUint32(offset + 16, true);
-        currentElement = strings[nameIdx] || '';
+        // name index at offset+20, attrCount at offset+28, attrs at offset+36
+        const nameIdx  = view.getInt32(offset + 20, true);
+        const attrCount = view.getUint16(offset + 28, true);
+        currentElement = getString(strings, nameIdx);
 
-        for (let a = 0; a < attrCount; a++) {
-          const attrBase = offset + 28 + a * 20;
-          if (attrBase + 20 > buffer.byteLength) break;
-          const nsIdx = view.getInt32(attrBase, true);
-          const nameAttrIdx = view.getInt32(attrBase + 4, true);
-          const valueType = view.getUint8(attrBase + 15);
-          const valueData = view.getInt32(attrBase + 16, true);
-          const valueStrIdx = view.getInt32(attrBase + 8, true);
+        for (let a = 0; a < attrCount && a < 500; a++) {
+          const base = offset + 36 + a * 20;
+          if (base + 20 > buffer.byteLength) break;
 
-          const ns = nsIdx >= 0 ? strings[nsIdx] : '';
-          const attrName = nameAttrIdx >= 0 ? strings[nameAttrIdx] : '';
-          const isAndroidNs = ns?.includes('android');
+          const nsIdx       = view.getInt32(base + 0, true);
+          const nameAttrIdx = view.getInt32(base + 4, true);
+          const rawValIdx   = view.getInt32(base + 8, true);
+          const dataType    = view.getUint8(base + 15);
+          const dataVal     = view.getInt32(base + 16, true);
+
+          const ns       = getString(strings, nsIdx);
+          const attrName = getString(strings, nameAttrIdx);
 
           let strValue = '';
-          if (valueType === 0x03 && valueStrIdx >= 0) {
-            strValue = strings[valueStrIdx] || '';
-          } else if (valueType === 0x10 || valueType === 0x11) {
-            strValue = String(valueData);
+          if (dataType === 0x03) {
+            // TYPE_STRING — value is a string pool index
+            strValue = getString(strings, rawValIdx);
+          } else if (dataType === 0x10 || dataType === 0x11 || dataType === 0x12) {
+            // TYPE_INT_DEC / TYPE_INT_HEX / TYPE_INT_BOOLEAN
+            strValue = String(dataVal >>> 0);
           }
 
-          if (currentElement === 'manifest') {
-            if (attrName === 'package') packageName = strValue;
-            if (attrName === 'versionName' && isAndroidNs) versionName = strValue;
-            if (attrName === 'versionCode' && isAndroidNs) versionCode = strValue;
-          }
-          if (currentElement === 'uses-sdk') {
-            if (attrName === 'minSdkVersion') minSdkVersion = strValue;
-            if (attrName === 'targetSdkVersion') targetSdkVersion = strValue;
-          }
-          if (currentElement === 'uses-permission' && attrName === 'name') {
-            if (strValue) permissions.push(strValue);
-          }
-          if (currentElement === 'activity' && attrName === 'name') {
-            if (strValue) activities.push(strValue);
-          }
-          if (currentElement === 'service' && attrName === 'name') {
-            if (strValue) services.push(strValue);
-          }
-          if (currentElement === 'receiver' && attrName === 'name') {
-            if (strValue) receivers.push(strValue);
-          }
-          if (currentElement === 'provider' && attrName === 'name') {
-            if (strValue) providers.push(strValue);
+          const isAndroid = ns.includes('android');
+
+          switch (currentElement) {
+            case 'manifest':
+              if (attrName === 'package')     packageName = strValue || packageName;
+              if (attrName === 'versionName') versionName = strValue;
+              if (attrName === 'versionCode' && isAndroid) versionCode = strValue;
+              break;
+            case 'uses-sdk':
+              if (attrName === 'minSdkVersion')    minSdkVersion = strValue;
+              if (attrName === 'targetSdkVersion') targetSdkVersion = strValue;
+              break;
+            case 'uses-permission':
+              if (attrName === 'name' && strValue) permissions.push(strValue);
+              break;
+            case 'activity':
+              if (attrName === 'name' && strValue) activities.push(strValue);
+              break;
+            case 'service':
+              if (attrName === 'name' && strValue) services.push(strValue);
+              break;
+            case 'receiver':
+              if (attrName === 'name' && strValue) receivers.push(strValue);
+              break;
+            case 'provider':
+              if (attrName === 'name' && strValue) providers.push(strValue);
+              break;
           }
         }
       }
 
       offset += chunkSize;
     }
-  } catch {
-    // Best-effort parsing
+  } catch (e) {
+    console.warn('[apkParser] binary parse error:', e);
   }
 
   return {
@@ -210,4 +226,40 @@ function parseBinaryManifest(buffer: ArrayBuffer): ParsedManifest {
     receivers,
     providers,
   };
+}
+
+function getString(strings: string[], idx: number): string {
+  return (idx >= 0 && idx < strings.length) ? strings[idx] : '';
+}
+
+function readPoolString(view: DataView, buffer: ArrayBuffer, base: number, isUtf8: boolean): string {
+  if (base < 0 || base >= buffer.byteLength) return '';
+  try {
+    if (isUtf8) {
+      // charLen prefix (1 or 2 bytes), then byteLen prefix (1 or 2 bytes), then UTF-8 bytes
+      let pos = base;
+      const c0 = view.getUint8(pos++);
+      if (c0 & 0x80) pos++; // 2-byte char length encoding
+      const b0 = view.getUint8(pos++);
+      const byteLen = (b0 & 0x80)
+        ? ((b0 & 0x7f) << 8 | view.getUint8(pos++))
+        : b0;
+      if (byteLen === 0) return '';
+      const end = Math.min(pos + byteLen, buffer.byteLength);
+      return new TextDecoder('utf-8').decode(new Uint8Array(buffer, pos, end - pos));
+    } else {
+      // UTF-16LE: uint16 length, then length × uint16 chars
+      const len = view.getUint16(base, true);
+      if (len === 0 || base + 2 + len * 2 > buffer.byteLength) return '';
+      const chars: string[] = [];
+      for (let c = 0; c < len; c++) {
+        const ch = view.getUint16(base + 2 + c * 2, true);
+        if (ch === 0) break;
+        chars.push(String.fromCharCode(ch));
+      }
+      return chars.join('');
+    }
+  } catch {
+    return '';
+  }
 }
