@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { DropZone } from './components/DropZone';
 import { Dashboard } from './components/Dashboard';
 import { parseApk, parseXmlText, type ParsedManifest } from './utils/apkParser';
@@ -38,7 +39,12 @@ function App() {
   };
 
   if (manifest) {
-    return <Dashboard manifest={manifest} fileName={fileName} onReset={() => setManifest(null)} />;
+    return (
+      <>
+        <Dashboard manifest={manifest} fileName={fileName} onReset={() => setManifest(null)} />
+        <Analytics />
+      </>
+    );
   }
 
   return (
@@ -49,6 +55,7 @@ function App() {
           {error}
         </div>
       )}
+      <Analytics />
     </>
   );
 }
