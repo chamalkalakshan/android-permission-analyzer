@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, type FileRejection } from 'react-dropzone';
 import { Shield, AlertCircle, FileCode, Smartphone } from 'lucide-react';
 
 interface Props {
@@ -29,11 +29,11 @@ export function DropZone({ onFile, onXml, loading }: Props) {
     }
   }, [onFile, onXml]);
 
-  const onDrop = useCallback((accepted: File[], rejected: File[]) => {
+  const onDrop = useCallback((accepted: File[], rejected: FileRejection[]) => {
     setDragOver(false);
     if (rejected.length > 0 && accepted.length === 0) {
-      // react-dropzone rejected due to MIME type - try anyway if name looks right
-      const file = rejected[0]?.file ?? rejected[0] as unknown as File;
+      // react-dropzone rejected due to MIME type — try by extension anyway
+      const file = rejected[0]?.file;
       if (file) { processFile(file); return; }
     }
     if (accepted[0]) processFile(accepted[0]);

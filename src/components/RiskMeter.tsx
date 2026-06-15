@@ -5,42 +5,43 @@ interface Props {
 
 export function RiskMeter({ score, size = 'md' }: Props) {
   const clamped = Math.min(Math.max(score, 0), 100);
-  const segments = 10;
-  const filled = Math.round((clamped / 100) * segments);
-
-  const color =
-    clamped >= 70 ? '#ef4444' :
-    clamped >= 40 ? '#f97316' :
-    clamped >= 20 ? '#eab308' :
-    '#22c55e';
 
   const label =
     clamped >= 70 ? 'High Risk' :
-    clamped >= 40 ? 'Moderate' :
-    clamped >= 20 ? 'Low-Moderate' :
+    clamped >= 40 ? 'Moderate Risk' :
+    clamped >= 15 ? 'Low-Moderate' :
     'Low Risk';
 
-  const sizeMap = {
-    sm: { bar: 'h-1.5', text: 'text-xs', gap: 'gap-0.5' },
-    md: { bar: 'h-2.5', text: 'text-sm', gap: 'gap-1' },
-    lg: { bar: 'h-4', text: 'text-base', gap: 'gap-1.5' },
-  };
-  const s = sizeMap[size];
+  const labelColor =
+    clamped >= 70 ? '#f43f5e' :
+    clamped >= 40 ? '#fb923c' :
+    clamped >= 15 ? '#facc15' :
+    '#4ade80';
+
+  const heights = { sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' };
+  const textSizes = { sm: 'text-xs', md: 'text-sm', lg: 'text-base' };
 
   return (
     <div className="w-full">
-      <div className={`flex ${s.gap}`}>
-        {Array.from({ length: segments }).map((_, i) => (
-          <div
-            key={i}
-            className={`flex-1 rounded-full ${s.bar} transition-all duration-500`}
-            style={{ backgroundColor: i < filled ? color : '#334155' }}
-          />
-        ))}
+      <div className={`relative w-full ${heights[size]} rounded-full overflow-hidden bg-white/5`}>
+        {/* Gradient track */}
+        <div
+          className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
+          style={{
+            width: `${clamped}%`,
+            background: clamped >= 70
+              ? 'linear-gradient(90deg, #4ade80, #facc15, #fb923c, #f43f5e)'
+              : clamped >= 40
+              ? 'linear-gradient(90deg, #4ade80, #facc15, #fb923c)'
+              : clamped >= 15
+              ? 'linear-gradient(90deg, #4ade80, #facc15)'
+              : 'linear-gradient(90deg, #4ade80, #86efac)',
+          }}
+        />
       </div>
-      <div className="flex justify-between mt-1">
-        <span className={`${s.text} font-bold`} style={{ color }}>{label}</span>
-        <span className={`${s.text} text-slate-400`}>{clamped}/100</span>
+      <div className="flex justify-between items-center mt-2">
+        <span className={`${textSizes[size]} font-bold`} style={{ color: labelColor }}>{label}</span>
+        <span className={`${textSizes[size]} font-black text-slate-300`}>{clamped}<span className="text-slate-600 font-normal">/100</span></span>
       </div>
     </div>
   );
