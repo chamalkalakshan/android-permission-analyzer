@@ -59,7 +59,7 @@ export function PermissionChart({ permissions }: { permissions: string[] }) {
             <Pie data={riskData} cx="50%" cy="50%" innerRadius={60} outerRadius={85} dataKey="value" paddingAngle={3} strokeWidth={0}>
               {riskData.map((e, i) => <Cell key={i} fill={e.color} />)}
             </Pie>
-            <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: number, n: string) => [v, n]} />
+            <Tooltip contentStyle={TOOLTIP_STYLE} />
           </PieChart>
         </ResponsiveContainer>
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center">
